@@ -1,0 +1,12 @@
+# Development dependencies for pip-safe
+# Install with: pip install -e ".[dev]"
+click>=8.0
+rich>=13.0
+requests>=2.28
+packaging>=23.0
+pytest>=7.0
+pytest-cov>=4.0
+responses>=0.23
+black>=23.0
+ruff>=0.1
+mypy>=1.0

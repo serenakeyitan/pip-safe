@@ -7,6 +7,8 @@
 [![PyPI version](https://img.shields.io/pypi/v/pip-safe.svg)](https://pypi.org/project/pip-safe/)
 [![CI](https://github.com/serenakeyitan/pip-safe/actions/workflows/ci.yml/badge.svg)](https://github.com/serenakeyitan/pip-safe/actions/workflows/ci.yml)
 
+> **Inspired by** [Andrej Karpathy's viral tweet](https://twitter.com/karpathy) about the litellm PyPI supply chain attack (27,865 likes, 5,376 RTs) — because `pip install` should never be a security risk.
+
 ---
 
 ## The Problem: The litellm Supply Chain Attack
@@ -144,6 +146,24 @@ Checking 142 installed package(s)...
 
 ✓ All 142 installed packages passed checks.
 ```
+
+---
+
+## Comparison with Existing Tools
+
+| Feature | pip-safe | pip-audit | safety | Snyk |
+|---------|----------|-----------|--------|------|
+| CVE/advisory database | ✅ (OSV) | ✅ | ✅ | ✅ |
+| Typosquatting detection | ✅ | ❌ | ❌ | ❌ |
+| Behavioral AST analysis | ✅ | ❌ | ❌ | ❌ |
+| Known malicious DB | ✅ | ❌ | ❌ | ❌ |
+| Install-time blocking | ✅ | ❌ | ❌ | ❌ |
+| SARIF output | ✅ | ❌ | ❌ | ✅ |
+| `uv` support | ✅ | ❌ | ❌ | ❌ |
+| Free & open-source | ✅ | ✅ | ✅ | ❌ |
+| Novel exfiltration patterns | ✅ | ❌ | ❌ | ❌ |
+
+**pip-safe is the only tool that catches novel, behavioral supply chain attacks** — the kind used in the litellm attack that exfiltrated SSH keys, AWS credentials, and crypto wallets with a simple `pip install`.
 
 ---
 

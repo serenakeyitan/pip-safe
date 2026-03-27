@@ -94,6 +94,57 @@ def _print_scan_result(result: ScanResult, show_header: bool = True) -> None:
             console.print()
 
 
+def _result_to_sarif(result: ScanResult) -> dict:
+    """Convert a ScanResult to SARIF 2.1.0 format for IDE/GitHub integration."""
+    rules = []
+    results_list = []
+    seen_rules: set[str] = set()
+
+    severity_sarif = {
+        Severity.CRITICAL: "error",
+        Severity.HIGH: "error",
+        Severity.MEDIUM: "warning",
+        Severity.LOW: "note",
+        Severity.INFO: "none",
+    }
+
+    for i, finding in enumerate(result.findings):
+        rule_id = f"PIP-SAFE-{finding.severity.value}-{i:03d}"
+        if rule_id not in seen_rules:
+            seen_rules.add(rule_id)
+            rules.append({
+                "id": rule_id,
+                "name": finding.title.replace(" ", ""),
+                "shortDescription": {"text": finding.title},
+                "fullDescription": {"text": finding.description},
+                "defaultConfiguration": {
+                    "level": severity_sarif.get(finding.severity, "warning")
+                },
+            })
+        results_list.append({
+            "ruleId": rule_id,
+            "level": severity_sarif.get(finding.severity, "warning"),
+            "message": {"text": finding.description},
+        })
+
+    return {
+        "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+        "version": "2.1.0",
+        "runs": [
+            {
+                "tool": {
+                    "driver": {
+                        "name": "pip-safe",
+                        "version": __version__,
+                        "rules": rules,
+                    }
+                },
+                "results": results_list,
+            }
+        ],
+    }
+
+
 def _result_to_dict(result: ScanResult) -> dict:
     """Convert a ScanResult to a JSON-serializable dict."""
     return {
@@ -137,12 +188,13 @@ def cli() -> None:
 @click.argument("package")
 @click.option("--version", "-v", default=None, help="Specific package version to scan.")
 @click.option("--json", "output_json", is_flag=True, help="Output results as JSON.")
+@click.option("--sarif", "output_sarif", is_flag=True, help="Output results in SARIF 2.1.0 format (for GitHub Code Scanning).")
 @click.option(
     "--no-behavioral",
     is_flag=True,
     help="Skip behavioral analysis (faster, but less thorough).",
 )
-def scan_cmd(package: str, version: str | None, output_json: bool, no_behavioral: bool) -> None:
+def scan_cmd(package: str, version: str | None, output_json: bool, output_sarif: bool, no_behavioral: bool) -> None:
     """Scan a PyPI package for security issues.
 
     Examples:\n
@@ -167,7 +219,9 @@ def scan_cmd(package: str, version: str | None, output_json: bool, no_behavioral
         )
         progress.remove_task(task)
 
-    if output_json:
+    if output_sarif:
+        click.echo(json.dumps(_result_to_sarif(result), indent=2))
+    elif output_json:
         click.echo(json.dumps(_result_to_dict(result), indent=2))
     else:
         _print_scan_result(result)

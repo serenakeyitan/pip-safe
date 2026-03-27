@@ -194,12 +194,14 @@ def scan_cmd(package: str, version: str | None, output_json: bool, no_behavioral
     default="",
     help="Additional arguments to pass through to pip install.",
 )
+@click.option("--uv", is_flag=True, help="Use uv instead of pip for installation.")
 def install_cmd(
     packages: tuple[str, ...],
     yes: bool,
     force: bool,
     no_behavioral: bool,
     pip_args: str,
+    uv: bool,
 ) -> None:
     """Scan packages, then install safe ones via pip.
 
@@ -258,7 +260,10 @@ def install_cmd(
         )
 
     if safe_packages:
-        pip_cmd = [sys.executable, "-m", "pip", "install"] + list(safe_packages)
+        if uv:
+            pip_cmd = ["uv", "pip", "install"] + list(safe_packages)
+        else:
+            pip_cmd = [sys.executable, "-m", "pip", "install"] + list(safe_packages)
         if pip_args:
             pip_cmd.extend(pip_args.split())
 

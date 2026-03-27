@@ -6,7 +6,7 @@ import re
 from datetime import datetime, timezone
 
 from pip_safe.models import Finding, Severity
-from pip_safe.utils import fetch_pypi_metadata, normalize_package_name
+from pip_safe.utils import fetch_pypi_metadata
 
 # Thresholds
 NEW_PACKAGE_DAYS = 7          # Packages newer than this many days are suspicious
@@ -105,9 +105,7 @@ def _check_download_count(info: dict, urls: list[dict]) -> list[Finding]:
 
     # PyPI's JSON API doesn't include download counts directly.
     # We can infer from the number of releases and their file counts as a proxy,
-    # but the real download stats come from pypistats.org. We check the releases count.
-    total_versions = len(info.get("releases", {})) if "releases" in info else 0
-
+    # but the real download stats come from pypistats.org.
     # Use the downloads field if present (sometimes available in the info dict)
     downloads = info.get("downloads", {})
     monthly = downloads.get("last_month", -1) if isinstance(downloads, dict) else -1

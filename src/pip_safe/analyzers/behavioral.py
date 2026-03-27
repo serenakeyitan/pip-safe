@@ -6,7 +6,6 @@ import ast
 import base64
 import re
 import shutil
-import tempfile
 from pathlib import Path
 from typing import NamedTuple
 
@@ -24,8 +23,9 @@ DANGEROUS_SUBPROCESS_ARGS = re.compile(
 )
 
 # Credential-related environment variable names
+# Note: no \b word boundaries because underscores are word chars and break boundary matching
 CREDENTIAL_ENV_PATTERN = re.compile(
-    r"\b(SECRET|KEY|TOKEN|PASSWORD|PASSWD|API_KEY|AWS_|GCP_|AZURE_|GITHUB_|PRIVATE)\b",
+    r"(SECRET|KEY|TOKEN|PASSWORD|PASSWD|API_KEY|AWS_|GCP_|AZURE_|GITHUB_|PRIVATE)",
     re.IGNORECASE,
 )
 
@@ -443,7 +443,7 @@ def _check_setup_py(setup_path: Path) -> list[Finding]:
                         "calls subprocess, network, or eval functions. This executes "
                         "arbitrary code when the package is installed via pip."
                     ),
-                    evidence=f"setup.py contains custom cmdclass with dangerous function calls",
+                    evidence="setup.py contains custom cmdclass with dangerous function calls",
                 )
             )
 
@@ -456,7 +456,6 @@ def _check_setup_py(setup_path: Path) -> list[Finding]:
         # Check if they're at module level (not guarded)
         for node in ast.walk(ctx.tree):
             if isinstance(node, ast.Call):
-                lineno = getattr(node, "lineno", 0)
                 call_str = ast.unparse(node) if hasattr(ast, "unparse") else ""
                 if re.search(
                     r"subprocess\.|os\.system|eval|exec", call_str
@@ -529,7 +528,6 @@ def analyze(package_name: str, version: str | None = None) -> list[Finding]:
 
         # Separately handle setup.py
         setup_files = [f for f in py_files if f.name in ("setup.py", "setup.cfg")]
-        other_py_files = [f for f in py_files if f not in setup_files]
 
         for setup_file in setup_files:
             if setup_file.suffix == ".py":

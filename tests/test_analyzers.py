@@ -465,7 +465,7 @@ class TestScoreCalculation:
         assert compute_score(findings) == 55
 
     def test_safe_threshold(self):
-        """Score >= 60 means safe=True."""
+        """Score > 60 means safe=True (score of exactly 60 is still unsafe)."""
         from pip_safe.models import Finding, Severity
 
         # Two HIGH findings -> 100 - 50 = 50 -> not safe

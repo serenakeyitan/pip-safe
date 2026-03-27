@@ -47,7 +47,7 @@ class TestScanPackage:
 
         result = scan_package("colourama", skip_behavioral=True)
         assert result.safe is False
-        assert result.score == 60  # 100 - 40 = 60 — exactly at safe boundary
+        assert result.score == 60  # 100 - 40 = 60 — at boundary, unsafe (requires >60)
 
     @patch("pip_safe.scanner.behavioral.analyze")
     @patch("pip_safe.scanner.metadata.analyze")

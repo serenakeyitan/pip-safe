@@ -54,7 +54,7 @@ def scan_package(
     resolved_version = version or _resolve_version(package_name)
 
     score = compute_score(all_findings)
-    safe = score >= 60
+    safe = score > 60
 
     # Collect some metadata for display
     pkg_metadata = _collect_metadata(package_name, version)

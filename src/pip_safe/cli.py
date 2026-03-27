@@ -85,7 +85,7 @@ def _print_scan_result(result: ScanResult, show_header: bool = True) -> None:
 
         for finding in sev_findings:
             badge = _severity_badge(finding.severity)
-            console.print(f"    ", end="")
+            console.print("    ", end="")
             console.print(badge, end="")
             console.print(f" [bold]{finding.title}[/bold]")
             console.print(f"      {finding.description}")
@@ -306,26 +306,19 @@ def audit_cmd(requirements: str, output_json: bool, no_behavioral: bool) -> None
 
     packages = _parse_requirements(req_path)
     if not packages:
-        console.print(f"[yellow]No packages found in {requirements}[/yellow]")
+        if not output_json:
+            console.print(f"[yellow]No packages found in {requirements}[/yellow]")
         return
 
-    console.print(f"\n[bold]Auditing {len(packages)} package(s) from[/bold] {requirements}\n")
+    if not output_json:
+        console.print(f"\n[bold]Auditing {len(packages)} package(s) from[/bold] {requirements}\n")
 
     results: list[ScanResult] = []
     failed = 0
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TextColumn("{task.completed}/{task.total}"),
-        TimeElapsedColumn(),
-        console=console,
-    ) as progress:
-        task = progress.add_task("Scanning packages...", total=len(packages))
-
+    if output_json:
+        # In JSON mode: scan without progress display
         for pkg_name, pkg_version in packages:
-            progress.update(task, description=f"Scanning [cyan]{pkg_name}[/cyan]...")
             result = scan_package(
                 package_name=pkg_name,
                 version=pkg_version,
@@ -334,7 +327,28 @@ def audit_cmd(requirements: str, output_json: bool, no_behavioral: bool) -> None
             results.append(result)
             if not result.safe:
                 failed += 1
-            progress.advance(task)
+    else:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TextColumn("{task.completed}/{task.total}"),
+            TimeElapsedColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Scanning packages...", total=len(packages))
+
+            for pkg_name, pkg_version in packages:
+                progress.update(task, description=f"Scanning [cyan]{pkg_name}[/cyan]...")
+                result = scan_package(
+                    package_name=pkg_name,
+                    version=pkg_version,
+                    skip_behavioral=no_behavioral,
+                )
+                results.append(result)
+                if not result.safe:
+                    failed += 1
+                progress.advance(task)
 
     if output_json:
         click.echo(json.dumps([_result_to_dict(r) for r in results], indent=2))
@@ -506,7 +520,7 @@ def check_env_cmd(output_json: bool) -> None:
         )
         for finding in item["findings"]:
             badge = _severity_badge(finding.severity)
-            console.print(f"    ", end="")
+            console.print("    ", end="")
             console.print(badge, end="")
             console.print(f" {finding.title}")
             console.print(f"      [dim]{finding.description[:100]}[/dim]")

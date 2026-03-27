@@ -45,6 +45,11 @@ def scan_package(
     meta_findings = metadata.analyze(package_name, version)
     all_findings.extend(meta_findings)
 
+    # 3b. OSV vulnerability database check
+    from pip_safe.analyzers import osv as osv_analyzer
+    osv_findings = osv_analyzer.analyze(package_name, version)
+    all_findings.extend(osv_findings)
+
     # 4. Behavioral analysis — downloads the package; can be skipped
     if not skip_behavioral:
         behavioral_findings = behavioral.analyze(package_name, version)

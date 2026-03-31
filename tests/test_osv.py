@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-import pytest
-import responses as responses_lib
 
 from pip_safe.analyzers.osv import _determine_severity, _parse_cvss_base_score, analyze
 from pip_safe.models import Severity

@@ -3,23 +3,18 @@
 from __future__ import annotations
 
 import ast
-import json
 import textwrap
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
 
 from pip_safe.analyzers import database, typosquatting
 from pip_safe.analyzers.behavioral import (
     ASTContext,
     _check_credential_access,
-    _check_dns_exfiltration,
-    _check_filesystem_crawling,
     _check_obfuscation,
     _check_setup_py,
     _check_subprocess_calls,
-    _load_ast,
     analyze_directory,
 )
 from pip_safe.models import Severity
@@ -129,7 +124,7 @@ class TestTyposquattingAnalyzer:
         # python_dateutil vs python-dateutil
         findings = typosquatting.analyze("python_dateutil")
         # Should detect separator confusion (hyphen vs underscore)
-        separator_findings = [
+        _separator_findings = [
             f for f in findings if "separator" in f.title.lower() or "hyphen" in f.title.lower()
         ]
         # The package normalizes to same name so should be detected or treated as legitimate

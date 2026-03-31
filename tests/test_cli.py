@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
 from click.testing import CliRunner
 
 from pip_safe.cli import cli
@@ -143,7 +142,7 @@ class TestAuditCommand:
             "# This is a comment\n\nrequests>=2.0\n-r other.txt\n"
         )
 
-        result = self.runner.invoke(cli, ["audit", "--requirements", str(req_file)])
+        self.runner.invoke(cli, ["audit", "--requirements", str(req_file)])
         # Should only scan 'requests', not comment or -r line
         assert mock_scan.call_count == 1
 
